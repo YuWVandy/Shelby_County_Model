@@ -35,7 +35,7 @@ class Flow:
         for Network in System.Networks:
             for i in Network.NodeSeries:
                 for j in Network.NodeSeries:
-                    if(Network.TimeAdj[-1][i][j] == 1):
+                    if(Network.Adj[i][j] == 1):
                         exec('f{}{}{} = LpVariable("f{}{}{}", 10, {})'.format(Network.Name, i, j, Network.Name, i, j, Network.Capacity[i][j]))
                         
                         Network.Flow['f{}{}{}'.format(Network.Name, i, j)] = [i, j, None]
@@ -73,7 +73,7 @@ class Flow:
         for InterNetwork in System.Interdependency:
             for i in InterNetwork.NodeSeries1:
                 for j in InterNetwork.NodeSeries2:
-                    if(InterNetwork.TimeAdj[-1][i - InterNetwork.NodeSeries1[0]][j - InterNetwork.NodeSeries2[0]] == 1):
+                    if(InterNetwork.Adj[i - InterNetwork.NodeSeries1[0]][j - InterNetwork.NodeSeries2[0]] == 1):
                         exec('f{}{}{}{} = LpVariable("f{}{}{}{}", 10, {})'.format(InterNetwork.Name1, i, InterNetwork.Name2, j, InterNetwork.Name1, i, InterNetwork.Name2, j, InterNetwork.Capacity[i - InterNetwork.NodeSeries1[0]][j - InterNetwork.NodeSeries2[0]]))
                         
                         InterNetwork.Flow['f{}{}{}{}'.format(InterNetwork.Name1, i, InterNetwork.Name2, j)] = [i, j, None]
@@ -110,7 +110,9 @@ class Flow:
         print("Status", LpStatus[self.prob.status])
     
     def PostProcess(self, System):
-        System.FlowAdj.append(np.zeros([System.NodeNum, System.NodeNum]))
+        System.FlowAdj = []
+        System.FlowAdj.append(np.zeros([System.NodeNum, System.NodeNum]))            
+        
         for v in self.prob.variables():
             print(v.name, "=", v.varValue)
             self.WholeFlow[v.name] = v.varValue
@@ -129,7 +131,12 @@ class Flow:
                         [InterNetwork.Network2.WholeNodeSeries[InterNetwork.Flow[v.name][1]]] = v.varValue
                 except:
                     continue
-         
+        for Network in System.Networks:
+            Network.FlowAdj = []
+            Network.FlowAdj.append(np.zeros([Network.NodeNum, Network.NodeNum]))
+            i = Network.WholeNodeSeries[Network.SupplySeries[0]]
+            j = Network.WholeNodeSeries[Network.DemandSeries[-1]]
+            Network.FlowAdj[-1] = System.FlowAdj[-1][i:(j + 1), i:(j + 1)]
         System.WholeFlow.append(self.WholeFlow)
 
         

@@ -79,6 +79,8 @@ class Network:
         self.TranFee = TranFee
         self.SLamb, self.SZeta = SLamb, SZeta
         self.DLamb, self.DZeta = DLamb, DZeta
+        
+        
     
     def Geo2XY(self, EarthMap):
         self.X, self.Y = EarthMap(self.Lon, self.Lat)
@@ -131,7 +133,6 @@ class System:
         self.NodeNum = 0
         self.Interdependency = None
         self.WholeFlow = []
-        self.FlowAdj = []
         
         
         

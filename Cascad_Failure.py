@@ -22,13 +22,10 @@ def PGAV(M_w, Distance):
 
 DisrupLon = -90
 DisrupLat = 27.6
-DisrupIntensity = 6
-Gas.SatisfyDemand = []
-Power.SatisfyDemand = []
-Water.SatisfyDemand = []
+DisrupIntensity = 8
 
 
-class Earthquake:
+class EarthquakeSys:
     def __init__(self, Target, DisrupLon, DisrupLat, DisrupIntensity):##Type 1 - System, Type 2 - Single Network
         self.Target = Target
         self.DisrupX, self.DisrupY = Base(DisrupLon, DisrupLat)
@@ -41,6 +38,13 @@ class Earthquake:
         ##Keep Track the whole process
         self.NodeFail = []
         self.NodeFailIndex = []
+        
+        for Network in self.Target.Networks:
+            Network.SatisfyDemand = []
+            Network.Performance = []            
+        
+        self.Target.Performance = []
+        
         
     def DistanceCalculation(self):
         self.DisrupNodeDistance = np.sqrt((self.Target.CoorlistX - self.DisrupX)**2 + (self.Target.CoorlistY - self.DisrupY)**2)/1000 #Change the unit to km
@@ -186,14 +190,11 @@ class Earthquake:
             
         
 
-Earth = Earthquake(Shelby_County, DisrupLon, DisrupLat, DisrupIntensity)
+Earth = EarthquakeSys(Shelby_County, DisrupLon, DisrupLat, DisrupIntensity)
 Earth.DistanceCalculation()
 Earth.NodeFailProbCalculation()
 Earth.MCFailureSimulation()
-Water.Performance = []
-Gas.Performance = []
-Power.Performance = []
-Shelby_County.Performance = []
+
 
 while(1):
     Earth.AdjUpdate()
