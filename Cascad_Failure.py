@@ -63,7 +63,7 @@ class EarthquakeSys:
         
     def AdjUpdate(self):
         Adj = copy.copy(self.Target.TimeAdj[-1])
-        
+        """
         gama = 0.5
         for i in self.NodeFailIndex[-1]:
             for j in range(self.Target.NodeNum):
@@ -75,7 +75,7 @@ class EarthquakeSys:
         
         Adj[self.NodeFailIndex[-1], :] = 0
         Adj[:, self.NodeFailIndex[-1]] = 0
-        """
+        
         self.Target.TimeAdj.append(Adj)
         
     def FlowUpdate(self):

@@ -21,7 +21,7 @@ class EarthquakeNet:
         self.Target.SingleTimeAdj.append(copy.copy(Network.Adj))
         self.Target.NodeFailIndex = []
         self.Target.SingleSatisDe = []
-        self.Target.SinglePerform = []
+        self.Target.SinglePerform = [1]
         self.Target.TimeAdj = []
         self.Target.TimeAdj.append(self.Target.Adj)
 
@@ -33,7 +33,7 @@ class EarthquakeNet:
         
     def AdjUpdate(self):
         Adj = copy.copy(self.Target.TimeAdj[-1])
-        
+        """
         gama = 0.5
         for i in self.Target.NodeFailIndex[-1]:
             for j in range(self.Target.NodeNum):
@@ -43,9 +43,9 @@ class EarthquakeNet:
                     Adj[j][i] = gama
         """
         
-        Adj[self.NodeFailIndex[-1], :] = 0
-        Adj[:, self.NodeFailIndex[-1]] = 0
-        """
+        Adj[self.Target.NodeFailIndex[-1], :] = 0
+        Adj[:, self.Target.NodeFailIndex[-1]] = 0
+        
         self.Target.TimeAdj.append(Adj)
         
     def FlowUpdate(self):
@@ -87,18 +87,17 @@ class EarthquakeNet:
 
 
     def Performance(self, Type):
-        self.Target.SinglePerform.append([])
         if(Type == "SingleSum"):
             Temp = np.array(self.Target.SingleSatisDe[-1])/self.Target.DemandValue
             Temp[np.isnan(Temp)] = 0
             for i in range(self.Target.DemandNum):
                 if(Temp[i] > 1):
                     Temp = 1
-            self.Target.SinglePerform[-1] = min(1, np.average(Temp))
+            self.Target.SinglePerform.append(min(1, np.average(Temp)))
         
         if(Type == "WholeSum"):
-            self.Target.SinglePerform[-1] = min(1, np.sum(np.array(self.Target.SingleSatisDe[-1]))/np.sum(np.array(self.Target.SatisfyDemand[0])))
-        
+            self.Target.SinglePerform.append(min(1, np.sum(np.array(self.Target.SingleSatisDe[-1]))/np.sum(self.Target.DemandValue)))
+            
 AnalType = 'WholeSum'
 for Network in Shelby_County.Networks:
     exec('Earth{} = EarthquakeNet(Network, Earth)'.format(Network.Name))
