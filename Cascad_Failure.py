@@ -41,9 +41,7 @@ class EarthquakeSys:
         
         for Network in self.Target.Networks:
             Network.SatisfyDemand = []
-            Network.Performance = []            
-        
-        self.Target.Performance = []
+            Network.Performance = [1]            
         
         
     def DistanceCalculation(self):
@@ -66,16 +64,23 @@ class EarthquakeSys:
     def AdjUpdate(self):
         Adj = copy.copy(self.Target.TimeAdj[-1])
         
+        gama = 0.5
+        for i in self.NodeFailIndex[-1]:
+            for j in range(self.Target.NodeNum):
+                if(Adj[i][j] != gama):
+                    Adj[i][j] = gama
+                if(Adj[j][i] != gama):
+                    Adj[j][i] = gama
+        """
+        
         Adj[self.NodeFailIndex[-1], :] = 0
         Adj[:, self.NodeFailIndex[-1]] = 0
-
+        """
         self.Target.TimeAdj.append(Adj)
         
     def FlowUpdate(self):
         Flow = self.Target.TimeAdj[-1]*self.Target.FlowAdj[-1]
-        print(np.sum(Flow[0:16, 0:16]))
-
-        print(1, np.sum(Flow[0:16, 0:16]))                
+             
         ##Gas Supply - Gas Demand
         Gas.SatisfyDemand.append([])
         for node in Gas.DemandSeries:
@@ -92,7 +97,7 @@ class EarthquakeSys:
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[Num, :]) != 0):
                 Flow[Num, :] = FlowInNode*InterGP.UnitRatio*Ratio   
-        print(2, np.sum(Flow[0:16, 0:16]))
+                
         ##Gas Demand - Power Supply
         for node in Power.SupplySeries:
             Num = Power.WholeNodeSeries[node]
@@ -164,26 +169,20 @@ class EarthquakeSys:
 
     
     def Performance(self, Type):
-        self.Target.Performance.append([])
         if(Type == "SingleSum"):
             for Network in self.Target.Networks:
-                Network.Performance.append([])
                 Temp = np.array(Network.SatisfyDemand[-1])/Network.DemandValue
                 Temp[np.isnan(Temp)] = 0
                 for i in range(Network.DemandNum):
                     if(Temp[i] > 1):
                         Temp = 1
-                Network.Performance[-1] = np.average(Temp)
-                self.Target.Performance[-1] += Network.Performance[-1]
-        
+                Network.Performance.append(min(1, np.average(Temp)))
+                
         if(Type == "WholeSum"):
             for Network in self.Target.Networks:
-                Network.Performance.append([])
-                Network.Performance[-1] = np.sum(np.array(Network.SatisfyDemand[-1]))/np.sum(np.array(Network.SatisfyDemand[0]))
-                self.Target.Performance[-1] += Network.Performance[-1]
+                Network.Performance.append(min(1, np.sum(np.array(Network.SatisfyDemand[-1]))/np.sum(Network.DemandValue)))
         
-        self.Target.Performance[-1] = min(1, self.Target.Performance[-1]/3)
-            
+        self.Target.Performance  = (np.array(Water.Performance) + np.array(Gas.Performance) + np.array(Power.Performance))/3
         
 
 Earth = EarthquakeSys(Shelby_County, DisrupLon, DisrupLat, DisrupIntensity)
@@ -196,11 +195,6 @@ while(1):
     Earth.AdjUpdate()
     Earth.FlowUpdate()
     Earth.CascadFail()
-    Earth.Performance("WholeSum")
+    Earth.Performance("SingleSum")
     if(Earth.NodeFailIndex[-1] == Earth.NodeFailIndex[-2]):
         break
-    
-np.sum(Shelby_County.FlowAdj[0][76:125, 76:125])
-np.sum(Shelby_County.FlowAdj[1][0:16, 0:16])
-np.sum(Shelby_County.FlowAdj[1][16:76, 16:76])
-

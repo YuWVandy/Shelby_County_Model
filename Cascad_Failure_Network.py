@@ -34,9 +34,18 @@ class EarthquakeNet:
     def AdjUpdate(self):
         Adj = copy.copy(self.Target.TimeAdj[-1])
         
-        Adj[self.Target.NodeFailIndex[-1], :] = 0
-        Adj[:, self.Target.NodeFailIndex[-1]] = 0
-
+        gama = 0.5
+        for i in self.Target.NodeFailIndex[-1]:
+            for j in range(self.Target.NodeNum):
+                if(Adj[i][j] != gama):
+                    Adj[i][j] = gama
+                if(Adj[j][i] != gama):
+                    Adj[j][i] = gama
+        """
+        
+        Adj[self.NodeFailIndex[-1], :] = 0
+        Adj[:, self.NodeFailIndex[-1]] = 0
+        """
         self.Target.TimeAdj.append(Adj)
         
     def FlowUpdate(self):
