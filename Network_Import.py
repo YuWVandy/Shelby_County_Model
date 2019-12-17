@@ -233,8 +233,6 @@ for Network in Shelby_County.Networks:
     Shelby_County.DemandNum += Network.DemandNum
     Shelby_County.SupplyNum += Network.SupplyNum
     
-    Network.TimeAdj = []
-    Network.TimeAdj.append(Network.Adj)
     
 ##----------------------------------------------------Network Demand Need
 Lon = np.arange(Disrupllon, Disruprlon, (Disruprlon - Disrupllon)/10)

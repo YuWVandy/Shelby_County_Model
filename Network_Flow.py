@@ -131,12 +131,7 @@ class Flow:
                         [InterNetwork.Network2.WholeNodeSeries[InterNetwork.Flow[v.name][1]]] = v.varValue
                 except:
                     continue
-        for Network in System.Networks:
-            Network.FlowAdj = []
-            Network.FlowAdj.append(np.zeros([Network.NodeNum, Network.NodeNum]))
-            i = Network.WholeNodeSeries[Network.SupplySeries[0]]
-            j = Network.WholeNodeSeries[Network.DemandSeries[-1]]
-            Network.FlowAdj[-1] = System.FlowAdj[-1][i:(j + 1), i:(j + 1)]
+
         System.WholeFlow.append(self.WholeFlow)
 
         

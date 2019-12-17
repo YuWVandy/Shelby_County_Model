@@ -73,14 +73,9 @@ class EarthquakeSys:
         
     def FlowUpdate(self):
         Flow = self.Target.TimeAdj[-1]*self.Target.FlowAdj[-1]
-        ##Power Demand - Gas Supply
-        for node in Gas.SupplySeries:
-            Num = Gas.WholeNodeSeries[node]
-            FlowInNode = np.sum(Flow[:, Num])
-            Ratio = Flow[Num, :]/np.sum(Flow[Num, :])
-            Ratio[np.isnan(Ratio)] = 0
-            if(np.sum(Flow[Num, :]) != 0):
-                Flow[Num, :] = FlowInNode*InterPG.UnitRatio*Ratio
+        print(np.sum(Flow[0:16, 0:16]))
+
+        print(1, np.sum(Flow[0:16, 0:16]))                
         ##Gas Supply - Gas Demand
         Gas.SatisfyDemand.append([])
         for node in Gas.DemandSeries:
@@ -96,7 +91,8 @@ class EarthquakeSys:
             Ratio = Flow[Num, :]/np.sum(Flow[Num, :])
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[Num, :]) != 0):
-                Flow[Num, :] = FlowInNode*InterGP.UnitRatio*Ratio        
+                Flow[Num, :] = FlowInNode*InterGP.UnitRatio*Ratio   
+        print(2, np.sum(Flow[0:16, 0:16]))
         ##Gas Demand - Power Supply
         for node in Power.SupplySeries:
             Num = Power.WholeNodeSeries[node]
@@ -204,3 +200,7 @@ while(1):
     if(Earth.NodeFailIndex[-1] == Earth.NodeFailIndex[-2]):
         break
     
+np.sum(Shelby_County.FlowAdj[0][76:125, 76:125])
+np.sum(Shelby_County.FlowAdj[1][0:16, 0:16])
+np.sum(Shelby_County.FlowAdj[1][16:76, 16:76])
+
