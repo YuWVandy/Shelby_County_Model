@@ -7,7 +7,7 @@ Created on Fri Dec 13 11:22:00 2019
 
 import math
 
-N = 5 #Number of vertices that the vertex in another network depends on
+N = 3 #Number of vertices that the vertex in another network depends on
 def NMinIndex(Array, N):
     temp = 0
     Index = []
@@ -51,9 +51,9 @@ class Interdependency:
             
 
 InterGP = Interdependency("InterGasPower", Gas, Power, Shelby_County, "Resource", 1)
-InterPG = Interdependency("InterPowerGas", Power, Gas, Shelby_County, "Power", 5)
+InterPG = Interdependency("InterPowerGas", Power, Gas, Shelby_County, "Power", 10)
 InterPW = Interdependency("InterPowerWater", Power, Water, Shelby_County, "Power", 1)
-InterWP = Interdependency("InterWaterPower", Water, Power, Shelby_County, "Cooling", 5)
+InterWP = Interdependency("InterWaterPower", Water, Power, Shelby_County, "Cooling", 10)
 
 InterGP.InterDepAdj()
 InterPG.InterDepAdj()
@@ -61,7 +61,6 @@ InterPW.InterDepAdj()
 InterWP.InterDepAdj()
 
 Shelby_County.Interdependency = [InterGP, InterPG, InterPW, InterWP]
-Shelby_County.SysVisual()
 
 for InterNetwork in Shelby_County.Interdependency:
     InterNetwork.TimeAdj = []

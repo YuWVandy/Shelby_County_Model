@@ -6,7 +6,7 @@ Created on Thu Dec 12 15:03:15 2019
 """
 import os
 
-os.environ['PROJ_LIB'] = r'C:\Users\wany105\AppData\Local\Continuum\anaconda3\pkgs\proj4-5.2.0-ha925a31_1\Library\share'
+os.environ['PROJ_LIB'] = r'E:\Anaconda\Library\share'
 
 """
 The environment is different among different computers. Please check where the epsg file is in your own computer and change the path in os.environ accordingly
@@ -26,6 +26,10 @@ import pandas as pd
 Disrupllon, Disruprlon = -90.2, -89.6
 Disrupllat, Disruprlat = 34.98, 35.4
 
+
+def Normalize(Data):
+    return (Data - np.min(Data))/(np.max(Data) - np.min(Data))
+
 def BaseMapSet(Type):
     if(Type == 'local'):
         Base = Basemap(projection = 'merc', resolution = 'l', area_thresh = 1000.0, lat_0=0, lon_0=0, llcrnrlon = Disrupllon, llcrnrlat=Disrupllat, urcrnrlon=Disruprlon, urcrnrlat=Disruprlat)
@@ -39,24 +43,25 @@ def BaseMapSet(Type):
     return Base
 
 
-WN = pd.read_excel (r'C:\Users\wany105\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\WaterNodes.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
-WE = pd.read_excel (r'C:\Users\wany105\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\WaterEdges.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
-PN = pd.read_excel (r'C:\Users\wany105\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\PowerNodes.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
-PE = pd.read_excel (r'C:\Users\wany105\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\PowerEdges.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
-GN = pd.read_excel (r'C:\Users\wany105\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\GasNodes.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
-GE = pd.read_excel (r'C:\Users\wany105\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\GasEdges.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
+WN = pd.read_excel (r'C:\Users\10624\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\WaterNodes.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
+WE = pd.read_excel (r'C:\Users\10624\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\WaterEdges.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
+PN = pd.read_excel (r'C:\Users\10624\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\PowerNodes.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
+PE = pd.read_excel (r'C:\Users\10624\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\PowerEdges.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
+GN = pd.read_excel (r'C:\Users\10624\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\GasNodes.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
+GE = pd.read_excel (r'C:\Users\10624\OneDrive - Vanderbilt\Research\ShelbyCounty_DataRead\GasEdges.xlsx') #for an earlier version of Excel, you may need to use the file extension of 'xls'
 
 Infras_Dict = [[WN, WE], [PN, PE], [GN, GE]]
 
 class Network:
     def __init__(self, Name, NodeNum, Lon, Lat, SupplyNum, DemandNum, Color, SupplyName, DemandName, \
-                 Limit, TranFee, SLamb, DLamb, SZeta, DZeta):
+                 Limit, TranFee, SLamb, DLamb, SZeta, DZeta, Demand_Person):
         self.Name = Name
         self.NodeNum = NodeNum
         self.Color = Color
         self.DemandName = DemandName
         self.SupplyName = SupplyName
         self.Limit  = Limit
+        self.Demand_Person = Demand_Person
         
         self.Lon = Lon
         self.Lat = Lat
@@ -99,18 +104,16 @@ class Network:
                 self.Capacity[self.Adjlist[1][i]][self.Adjlist[0][i]] = self.Limit
     
     def NetworkVisual(self):
-        plt.figure(figsize = (14, 8))
+        plt.figure(figsize = (20, 12))
         Base = BaseMapSet(Type)
         ##Vertice
-        plt.scatter(self.X[self.SupplySeries], self.Y[self.SupplySeries], 60, marker = 's', color = self.Color, label = self.SupplyName)
-        plt.scatter(self.X[self.DemandSeries], self.Y[self.DemandSeries], 60, marker = 'o', color = self.Color, facecolors = 'none', label = self.DemandName)
+        plt.scatter(self.X[self.SupplySeries], self.Y[self.SupplySeries], 200, marker = 's', color = self.Color, label = self.SupplyName)
+        plt.scatter(self.X[self.DemandSeries], self.Y[self.DemandSeries], 200, marker = 'o', color = self.Color, facecolors = 'none', label = self.DemandName)
                 
         ##Edge                
         for i in range(self.EdgeNum):
-            plt.plot([self.X[self.Adjlist[0][i]], self.X[self.Adjlist[1][i]]], [self.Y[self.Adjlist[0][i]], self.Y[self.Adjlist[1][i]]], 'black', lw = 1)
+            plt.plot([self.X[self.Adjlist[0][i]], self.X[self.Adjlist[1][i]]], [self.Y[self.Adjlist[0][i]], self.Y[self.Adjlist[1][i]]], 'black', lw = 2)
             
-        plt.xlabel("Longitude")
-        plt.ylabel("Latitude")
         plt.legend(bbox_to_anchor=(1, 1), loc='upper left', ncol=1)
     
     def Dist(self):
@@ -168,30 +171,28 @@ class System:
             self.Adj[Network.IniNum:Network.EndNum, Network.IniNum:Network.EndNum] = Network.Adj
             self.Capacity[Network.IniNum:Network.EndNum, Network.IniNum:Network.EndNum] = Network.Capacity
 
-    def SysVisual(self):
-        plt.figure(figsize = (14, 8))
+    def SysVisual(self, Normalize_Flow):
+        plt.figure(figsize = (20, 12))
         Base = BaseMapSet(Type)
         
         #Vertice
         for Network in self.Networks:
-            plt.scatter(Network.X[Network.SupplySeries], Network.Y[Network.SupplySeries], 60, marker = 's', color = Network.Color, label = Network.SupplyName)
-            plt.scatter(Network.X[Network.DemandSeries], Network.Y[Network.DemandSeries], 60, marker = 'o', color = Network.Color, facecolors = 'none', label = Network.DemandName)
+            plt.scatter(Network.X[Network.SupplySeries], Network.Y[Network.SupplySeries], 150, marker = 's', color = Network.Color, label = Network.SupplyName)
+            plt.scatter(Network.X[Network.DemandSeries], Network.Y[Network.DemandSeries], 150, marker = 'o', color = Network.Color, facecolors = 'none', label = Network.DemandName)
         
-        plt.xlabel("Longitude")
-        plt.ylabel("Latitude")
         plt.legend(bbox_to_anchor=(1, 1), loc='upper left', ncol=1)        
         #Edge
         for i in range(self.NodeNum):
             for j in range(self.NodeNum):
                 if(self.Adj[i][j] == 1):
-                    plt.plot([self.CoorlistX[i], self.CoorlistX[j]], [self.CoorlistY[i], self.CoorlistY[j]], 'black', lw = 1)        
+                    plt.plot([self.CoorlistX[i], self.CoorlistX[j]], [self.CoorlistY[i], self.CoorlistY[j]], 'black', lw = 7.5*Normalize_Flow[i][j])        
                 
 Limit = 200
     
 ##Define Network: Water, Electricity, Gas
-Water = Network('Water', len(WN), np.array(WN['Long']), np.array(WN['Lat']), 9, 40, 'blue', 'Pump Station', 'Water Substation', 1000, 0.1, np.log(1.5), np.log(1.2), 0.8, 0.6)
-Power = Network('Power', len(PN), np.array(PN['Long']), np.array(PN['Lat']), 9, 51, 'r', 'Power Plant', 'Power Substaion', 1000, 0.1, np.log(1.4), np.log(1.2), 0.4, 0.4)
-Gas = Network('Gas', len(GN), np.array(GN['Long']), np.array(GN['Lat']), 3, 13, 'green', 'Gas Plant', 'Gas Substation', 1000, 0.1, np.log(1.5), np.log(1.2), 0.8, 0.6)
+Water = Network('Water', len(WN), np.array(WN['Long']), np.array(WN['Lat']), 9, 40, 'blue', 'Pump Station', 'Water Substation', 1000, 0.1, np.log(1.5), np.log(1.2), 0.8, 0.6, 0.01)
+Power = Network('Power', len(PN), np.array(PN['Long']), np.array(PN['Lat']), 9, 51, 'r', 'Power Plant', 'Power Substaion', 1000, 0.1, np.log(1.4), np.log(1.2), 0.4, 0.4, 0.01)
+Gas = Network('Gas', len(GN), np.array(GN['Long']), np.array(GN['Lat']), 3, 13, 'green', 'Gas Plant', 'Gas Substation', 1000, 0.1, np.log(1.5), np.log(1.2), 0.8, 0.6, 0.01)
 
 Water.Adjlist = np.stack((np.array(WE['START WATER NODE ID']) - 1, np.array(WE['END WATER NODE ID']) - 1))
 Power.Adjlist = np.stack((np.array(PE['START POWER NODE ID']) - 1, np.array(PE['END POWER NODE ID']) - 1))
@@ -233,5 +234,36 @@ for Network in Shelby_County.Networks:
     
     Network.TimeAdj = []
     Network.TimeAdj.append(Network.Adj)
-    Network.DemandValue = np.random.rand(Network.DemandNum)*50
+    
+##----------------------------------------------------Network Demand Need
+Lon = np.arange(Disrupllon, Disruprlon, (Disruprlon - Disrupllon)/10)
+Lat = np.arange(Disrupllat, Disruprlat, (Disruprlat - Disrupllat)/10)
+X = np.zeros(len(Lon) - 1)
+Y = np.zeros(len(Lat) - 1)
+Grid_Area = np.zeros([len(Lon) - 1, len(Lat) - 1])
+MiddleX = np.zeros([len(Lon) - 1, len(Lat) - 1])
+MiddleY = np.zeros([len(Lon) - 1, len(Lat) - 1])
+Density = np.zeros([len(Lon) - 1, len(Lat) - 1])
+X, Y = Base(Lon, Lat)
+for i in range(len(X) - 1):
+    for j in range(len(Y) - 1):
+        Grid_Area[i][j] = (X[i+1] - X[i])*(Y[j+1] - Y[j])
+        Density[i][j] = 166/(1600)**2 ##Data: http://worldpopulationreview.com/states/state-densities/: 166Popu/1mi^2
+        MiddleX[i][j] = (X[i] + X[i+1])/2
+        MiddleY[i][j] = (Y[j] + Y[j+1])/2
 
+def NeedAssignment(Network, Density, X, Y, Area):
+    for j in range(len(X)):
+        for k in range(len(Y)):
+            Min = math.inf
+            for i in Network.DemandSeries:
+                Temp = np.sqrt((Network.X[i] - X[j][k])**2 + (Network.Y[i] - Y[j][k])**2)
+                if(Temp < Min):
+                    Index = i
+                    Min = Temp
+            print(Index)
+            Network.DemandValue[Index - Network.DemandSeries[0]] += Density[j][k]*Area[j][k]*Network.Demand_Person
+
+for Network in Shelby_County.Networks:
+    Network.DemandValue = np.zeros(Network.DemandNum)
+    NeedAssignment(Network, Density, MiddleX, MiddleY, Grid_Area)    

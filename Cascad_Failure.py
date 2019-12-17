@@ -4,7 +4,9 @@ Created on Sun Dec 15 16:56:24 2019
 
 @author: wany105
 """
+Shelby_County_Flow.PostProcess(Shelby_County)
 
+Shelby_County.SysVisual(Normalize(Shelby_County.FlowAdj[0]))
 
 import numpy as np
 from scipy.stats import norm
@@ -19,7 +21,7 @@ def PGAV(M_w, Distance):
     return PGA, PGV
 
 DisrupLon = -90
-DisrupLat = 27.8
+DisrupLat = 27.6
 DisrupIntensity = 6
 Gas.SatisfyDemand = []
 Power.SatisfyDemand = []
@@ -180,7 +182,7 @@ class Earthquake:
                 Network.Performance[-1] = np.sum(np.array(Network.SatisfyDemand[-1]))/np.sum(np.array(Network.SatisfyDemand[0]))
                 self.Target.Performance[-1] += Network.Performance[-1]
         
-        self.Target.Performance[-1] = self.Target.Performance[-1]/3
+        self.Target.Performance[-1] = min(1, self.Target.Performance[-1]/3)
             
         
 
@@ -197,7 +199,7 @@ while(1):
     Earth.AdjUpdate()
     Earth.FlowUpdate()
     Earth.CascadFail()
-    Earth.Performance("SingleSum")
+    Earth.Performance("WholeSum")
     if(Earth.NodeFailIndex[-1] == Earth.NodeFailIndex[-2]):
         break
     
