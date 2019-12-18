@@ -50,29 +50,33 @@ class EarthquakeNet:
         
     def FlowUpdate(self):
         Flow = self.Target.TimeAdj[-1]*self.Target.FlowAdj[-1]
+
         ##Demand -> Supply
         for node in self.Target.SupplySeries:
-            FlowInNode = np.sum(Flow[node, :])
+            FlowInNode = np.sum(Flow[node, self.Target.DemandSeries])
+            print(FlowInNode)
             Ratio = Flow[node, :]/np.sum(Flow[node, :])
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[node, :]) != 0):
                 Flow[node, :] = FlowInNode*Ratio
-        
+            print(np.sum(Flow[node, :]))
+
         ##Supply -> Demand
         self.Target.SingleSatisDe.append([])
         for node in self.Target.DemandSeries:
             FlowInNode = np.sum(Flow[self.Target.SupplySeries, node]) + np.sum(Flow[self.Target.DemandSeries, node])
-            if(FlowInNode >= self.Target.DemandValue[node - self.Target.DemandSeries[0]]):
+            if(math.floor(FlowInNode) >= math.floor(self.Target.DemandValue[node - self.Target.DemandSeries[0]])):
                 FlowInNode = FlowInNode - self.Target.DemandValue[node - self.Target.DemandSeries[0]]
                 self.Target.SingleSatisDe[-1].append(self.Target.DemandValue[node - self.Target.DemandSeries[0]])
             else:
                 self.Target.SingleSatisDe[-1].append(0.25*FlowInNode)
                 FlowInNode *= 0.75
-                
+            """
             Ratio = Flow[node, :]/np.sum(Flow[node, :])
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[node, :]) != 0):
                 Flow[node, :] = FlowInNode*Ratio        
+            """
         self.Target.FlowAdj.append(Flow)
         
     def CascadFail(self):
@@ -81,15 +85,17 @@ class EarthquakeNet:
             FlowInNode = np.sum(self.Target.FlowAdj[-1][:, i])
             FlowInNode0 = np.sum(self.Target.FlowAdj[0][:, i])
             if(FlowInNode < LowBound*FlowInNode0 and (i not in self.Target.NodeFailIndex[-1])):
+                print(i, 1)
                 self.Target.NodeFailIndex[-1].append(i)
             if(FlowInNode > UpBound*FlowInNode0 and (i not in self.Target.NodeFailIndex[-1])):
+                print(i, 0)
                 self.Target.NodeFailIndex[-1].append(i)
 
 
     def Performance(self, Type):
         if(Type == "SingleSum"):
             Temp = np.array(self.Target.SingleSatisDe[-1])/self.Target.DemandValue
-            Temp[np.isnan(Temp)] = 0
+            Temp[np.isnan(Temp)] = 1
             for i in range(self.Target.DemandNum):
                 if(Temp[i] > 1):
                     Temp = 1
@@ -98,7 +104,7 @@ class EarthquakeNet:
         if(Type == "WholeSum"):
             self.Target.SinglePerform.append(min(1, np.sum(np.array(self.Target.SingleSatisDe[-1]))/np.sum(self.Target.DemandValue)))
             
-AnalType = 'WholeSum'
+AnalType = 'SingleSum'
 for Network in Shelby_County.Networks:
     exec('Earth{} = EarthquakeNet(Network, Earth)'.format(Network.Name))
     exec('Earth{}.VariableIni()'.format(Network.Name))

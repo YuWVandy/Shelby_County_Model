@@ -13,15 +13,15 @@ from scipy.stats import norm
 import copy
 import matplotlib.pyplot as plt 
 LowBound = 0.3
-UpBound = 1.5
+UpBound = 1.4
 
 def PGAV(M_w, Distance):
     PGA = np.power(10, 3.79 + 0.298*(M_w - 6) - 0.0536*(M_w - 6)**2 - np.log10(Distance) - 0.00135*Distance)
     PGV = np.power(10, 2.04 + 0.422*(M_w - 6) - 0.0373*(M_w - 6)**2 - np.log10(Distance))
     return PGA, PGV
 
-DisrupLon = -90
-DisrupLat = 27.6
+DisrupLon = -95
+DisrupLat = 30
 DisrupIntensity = 8
 
 
@@ -80,23 +80,22 @@ class EarthquakeSys:
         
     def FlowUpdate(self):
         Flow = self.Target.TimeAdj[-1]*self.Target.FlowAdj[-1]
-             
         ##Gas Supply - Gas Demand
         Gas.SatisfyDemand.append([])
         for node in Gas.DemandSeries:
             Num = Gas.WholeNodeSeries[node]
             FlowInNode = np.sum(Flow[Gas.WholeNodeSeries[Gas.SupplySeries], Num]) + np.sum(Flow[Gas.WholeNodeSeries[Gas.DemandSeries], Num])
-            if(FlowInNode >= Gas.DemandValue[node - Gas.DemandSeries[0]]):
+            if(math.floor(FlowInNode) >= math.floor(Gas.DemandValue[node - Gas.DemandSeries[0]])):
                 FlowInNode = FlowInNode - Gas.DemandValue[node - Gas.DemandSeries[0]]
                 Gas.SatisfyDemand[-1].append(Gas.DemandValue[node - Gas.DemandSeries[0]])
             else:
                 Gas.SatisfyDemand[-1].append(0.25*FlowInNode)
                 FlowInNode *= 0.75
-                
+            
             Ratio = Flow[Num, :]/np.sum(Flow[Num, :])
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[Num, :]) != 0):
-                Flow[Num, :] = FlowInNode*InterGP.UnitRatio*Ratio   
+                Flow[Num, :] = FlowInNode*InterGP.UnitRatio*Ratio 
                 
         ##Gas Demand - Power Supply
         for node in Power.SupplySeries:
@@ -109,13 +108,14 @@ class EarthquakeSys:
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[Num, :]) != 0):
                 Flow[Num, :] = FlowInNode*Ratio
+                
         Power.SatisfyDemand.append([])
         ##Power Supply - Power Demand
         for node in Power.DemandSeries:
             Num = Power.WholeNodeSeries[node]
             FlowInNode = np.sum(Flow[Power.WholeNodeSeries[Power.SupplySeries], Num]) + np.sum(Flow[Power.WholeNodeSeries[Power.DemandSeries], Num])
             
-            if(FlowInNode >= Power.DemandValue[node - Power.DemandSeries[0]]):
+            if(math.floor(FlowInNode) >= math.floor(Power.DemandValue[node - Power.DemandSeries[0]])):
                 FlowInNode = FlowInNode - Power.DemandValue[node - Power.DemandSeries[0]]
                 Power.SatisfyDemand[-1].append(Power.DemandValue[node - Power.DemandSeries[0]])
             else:
@@ -125,7 +125,8 @@ class EarthquakeSys:
             Ratio = Flow[Num, :]/np.sum(Flow[Num, :])
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[Num, :]) != 0):
-                Flow[Num, :] = FlowInNode*InterPW.UnitRatio*Ratio                
+                Flow[Num, :] = FlowInNode*InterPW.UnitRatio*Ratio 
+            
         ##Power Demand - Water Supply
         for node in Water.SupplySeries:
             Num = Water.WholeNodeSeries[node]
@@ -143,7 +144,7 @@ class EarthquakeSys:
            FlowInNode = np.sum(Flow[Water.WholeNodeSeries[Water.SupplySeries], Num]) + np.sum(Flow[Water.WholeNodeSeries[Water.DemandSeries], Num])
            FlowInNode, Water.DemandValue[node - Water.DemandSeries[0]] = math.floor(FlowInNode), math.floor(Water.DemandValue[node - Water.DemandSeries[0]])
            
-           if(FlowInNode >= Water.DemandValue[node - Water.DemandSeries[0]]):
+           if(math.floor(FlowInNode) >= math.floor(Water.DemandValue[node - Water.DemandSeries[0]])):
                FlowInNode = FlowInNode - Water.DemandValue[node - Water.DemandSeries[0]]
                Water.SatisfyDemand[-1].append(Water.DemandValue[node - Water.DemandSeries[0]])
            else:
@@ -154,6 +155,7 @@ class EarthquakeSys:
            Ratio[np.isnan(Ratio)] = 0
            if(np.sum(Flow[Num, :]) != 0):
                Flow[Num, :] = FlowInNode*Ratio
+        
         self.Target.FlowAdj.append(Flow)
         
     def CascadFail(self):
@@ -172,7 +174,7 @@ class EarthquakeSys:
         if(Type == "SingleSum"):
             for Network in self.Target.Networks:
                 Temp = np.array(Network.SatisfyDemand[-1])/Network.DemandValue
-                Temp[np.isnan(Temp)] = 0
+                Temp[np.isnan(Temp)] = 1
                 for i in range(Network.DemandNum):
                     if(Temp[i] > 1):
                         Temp = 1
