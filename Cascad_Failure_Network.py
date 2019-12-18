@@ -54,12 +54,10 @@ class EarthquakeNet:
         ##Demand -> Supply
         for node in self.Target.SupplySeries:
             FlowInNode = np.sum(Flow[node, self.Target.DemandSeries])
-            print(FlowInNode)
             Ratio = Flow[node, :]/np.sum(Flow[node, :])
             Ratio[np.isnan(Ratio)] = 0
             if(np.sum(Flow[node, :]) != 0):
                 Flow[node, :] = FlowInNode*Ratio
-            print(np.sum(Flow[node, :]))
 
         ##Supply -> Demand
         self.Target.SingleSatisDe.append([])
@@ -85,10 +83,8 @@ class EarthquakeNet:
             FlowInNode = np.sum(self.Target.FlowAdj[-1][:, i])
             FlowInNode0 = np.sum(self.Target.FlowAdj[0][:, i])
             if(FlowInNode < LowBound*FlowInNode0 and (i not in self.Target.NodeFailIndex[-1])):
-                print(i, 1)
                 self.Target.NodeFailIndex[-1].append(i)
             if(FlowInNode > UpBound*FlowInNode0 and (i not in self.Target.NodeFailIndex[-1])):
-                print(i, 0)
                 self.Target.NodeFailIndex[-1].append(i)
 
 
